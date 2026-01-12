@@ -11,6 +11,9 @@ import com.example.homeworkproject.repository.BillRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 @Transactional
@@ -32,5 +35,15 @@ public class AccountService {
 
         return AccountResponse.fromEntity(account);
     }
+
+    public List<AccountResponse> getAllAccounts() {
+        List<Account> accounts = accountRepository.findAll();
+
+        return accounts.stream()
+                .map(AccountResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+
 
 }
