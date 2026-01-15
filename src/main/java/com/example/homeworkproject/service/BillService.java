@@ -1,9 +1,6 @@
 package com.example.homeworkproject.service;
 
-import com.example.homeworkproject.dto.BillResponse;
-import com.example.homeworkproject.dto.BillSetRequest;
-import com.example.homeworkproject.dto.DepositRequest;
-import com.example.homeworkproject.dto.TransferRequest;
+import com.example.homeworkproject.dto.*;
 import com.example.homeworkproject.entity.Account;
 import com.example.homeworkproject.entity.Bill;
 import com.example.homeworkproject.exception.BillNotFoundException;
@@ -28,7 +25,31 @@ public class BillService {
         this.accountRepository = accountRepository;
     }
 
-    public void transfer(TransferRequest request) {
+    public BillResponse withdrawBill(WithdrawRequest request) {
+        Bill bill = billRepository.findByNumber(request.billNumber())
+                .orElseThrow(() -> new BillNotFoundException(request.billNumber()));
+
+        if(bill.getBalance().compareTo(request.amount()) < 0) {
+            throw new IllegalArgumentException("No money - no funny ;( ");
+        }
+
+        BigDecimal oldBalance = bill.getBalance();
+
+        bill.setBalance(bill.getBalance().subtract(request.amount()));
+        Bill savedBill = billRepository.save(bill);
+        log.info("Old balance : {}, New balance : {}, Amount: {}" , oldBalance, bill.getBalance(), request.amount());
+
+        return BillResponse.fromEntity(savedBill);
+    }
+
+
+    public BigDecimal checkBalance(String number) {
+        return billRepository.findBalanceByNumber(number)
+                .orElseThrow(() -> new BillNotFoundException(number));
+    }
+
+
+    public TransferResponse transfer(TransferRequest request) {
         Bill fromBill = billRepository.findByNumber(request.fromBillNumber())
                 .orElseThrow(() -> new BillNotFoundException(request.fromBillNumber()));
 
@@ -40,12 +61,15 @@ public class BillService {
         }
 
         fromBill.setBalance(fromBill.getBalance().subtract(request.amount()));
-
         toBill.setBalance(toBill.getBalance().add(request.amount()));
+
+        billRepository.save(fromBill);
+        billRepository.save(toBill);
 
         log.info("Трансфер выполнился успешно !!!");
         log.info("Перевод на сумму : {}", request.amount());
 
+        return TransferResponse.success(fromBill, toBill, request.amount());
     }
 
 
@@ -66,6 +90,7 @@ public class BillService {
         return BillResponse.fromEntity(savedBill);
     }
 
+
     public BillResponse depositBill(DepositRequest request) {
 
         validateDeposit(request);
@@ -81,6 +106,7 @@ public class BillService {
         return BillResponse.fromEntity(savedBill);
     }
 
+
     private void validateDeposit(DepositRequest request) {
         if(request.amount() == null) {
             throw new IllegalArgumentException("Amount cannot be null");
@@ -94,5 +120,4 @@ public class BillService {
             throw new IllegalArgumentException("Bill number is required");
         }
     }
-
 }

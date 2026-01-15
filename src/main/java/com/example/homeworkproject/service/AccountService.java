@@ -27,6 +27,7 @@ public class AccountService {
         this.billRepository = billRepository;
     }
 
+
     public AccountResponse createAccount(CreateAccountRequest request) {
         Account account = new Account();
         account.setName(request.name());
@@ -35,6 +36,7 @@ public class AccountService {
 
         return AccountResponse.fromEntity(account);
     }
+
 
     public List<AccountResponse> getAllAccounts() {
         List<Account> accounts = accountRepository.findAll();

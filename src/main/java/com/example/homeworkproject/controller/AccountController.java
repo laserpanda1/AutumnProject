@@ -6,6 +6,7 @@ import com.example.homeworkproject.entity.Account;
 import com.example.homeworkproject.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ public class AccountController {
 
     private AccountService accountService;
 
+    @Autowired
     public AccountController(AccountService accountService) {
         this.accountService = accountService;
     }
